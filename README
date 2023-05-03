@@ -1,0 +1,71 @@
+###############################################
+#################AlphaFold-IDP#################
+###############################################
+Here is included everything needed to run AlphaFold-IDP in a GNU/Linux system from a bash command interpreter. The scripts can work also in other systems with a bash interpreter (for example, MacOS) except for analysisEnsemble.sh, that requires ssp, which is only compatible with GNU/Linux
+
+The scripts were tested in two different Ubuntu systems (16.04.7 LTS and 18.04.6 LTS) with the default software versions
+
+A demo file with the AlphaFold run of ACTR is included (demo.zip) together with with the expected outputs (demoEnsGen.out.zip and demoDatAn.out.zip)
+The run time for the ensemble generation of the demo is 1 minute and for the data analysis 3 minutes
+
+The steps to follow to run AlphaFold-IDP are:
+    -Generation of the FASTA files for the AlphaFold runs (fastagen.sh)
+    -Execution of ColabFold in batch with the folder of the previous FASTA files in the following link:
+	https://colab.research.google.com/github/sokrypton/ColabFold/blob/main/batch/AlphaFold2_batch.ipynb
+    -Generation of the ensemble with the script (AFensemble.sh) from the results folder
+    -Execution of the script for the data analysis (analysisEnsemble.sh) in the folder of the output pdbs of the ensemble
+
+The separation of the two last steps allows to easily run the analysis over another pdb dataset by modifying the last script
+
+###
+###FASTA fragments generator (fastagen.sh)
+###
+
+Create a file with the sequence of the full-length protein (protein.seq)
+Copy the fastagen.sh script to the same folder of the sequence file
+Edit the script file to define the fragment size (default is 10)
+Execute the script:
+    ./fastagen.sh protein.seq
+
+###
+###Ensemble generator (AFensemble.sh)
+###
+
+Copy the files AFensemble.sh, get_raw_distances.py and random.list to the folder with the AlphaFold '_env' folders and zip files
+Edit the script file to define the number of structures to be generated (default is 100)
+Execute the script:
+    ./AFensemble.sh
+
+Requirements:
+-Pymol, executable from command line
+-AlphaFold runs in ColabFold, AlphaFold2 w/MMseqs2 BATCH with the parameters:
+    msa_mode=MMseqs2 (UniRef+Environmental)
+    num_models=5
+    num_recycles=3
+    stop_at_score=100
+    use_amber=yes
+    use_templates=no
+    zip_results=yes
+The script is tested with these parameters but in principle the script should work with the only requirement of num_models=5 and use_amber=yes
+The name of the files should have the format NAME_f1-10. If not, the script can be adapted
+
+Output:
+For each generated structure a folder called 000ensemble'N' is created being N the number of the generated structure
+    Inside that folder there are:
+	    -the pdbs of the fragments (p1, p9...)
+	    -the pdb of the generated structure (000ensemble1.pdb)
+	    -if no clashes are detected, the pdb of the structure without protons (Str1.pdb)
+A final folder 00000END with the sequence file and the 100 structures of the ensemble (Str1...Str100)
+
+###
+###Data analysis (analysisEnsemble.sh)
+###
+
+Copy the analysisEnsemble.sh script to the 00000END folder
+Edit the script file to define the number of structures to analyze (default is 100) and the threshold for the filtering (default is 0.2) and add the path where SSP is installed
+Execute the script:
+    ./analysisEnsemble.sh
+
+Requirements:
+-SPARTA+
+-SSP
